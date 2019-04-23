@@ -127,6 +127,15 @@ public class WebController {
 		appointmentModel.addAttribute("appointments", apptrepo.findByPatientProfile(pid));
 		return "resultsappts";
 	}
+	@GetMapping("/viewAllDoctorAppointments")
+	public String whatIsDoctorID() {
+		return "whatIsDoctorNumber";
+	}
+	@GetMapping("/viewDoctorAppointments")
+	public String whatIsDoctorID(@RequestParam("doctorProfile") doctorProfile doctorId, Model apptModel) {
+		apptModel.addAttribute("appointments", apptrepo.findByDoctorProfileOrderByDateTimeAsc(doctorId));
+		return "resultsdocappts";
+	}
 	
 	//Doctor Web Controller. - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - 
 	@GetMapping("/addDoctorProfile")
@@ -148,4 +157,34 @@ public class WebController {
 		model.addAttribute("doctorProfiles", docrepo.findAll());
 		return "resultsdoc";
 	}
+	
+	@GetMapping("/editDoctor/{doctorID}")
+	public String showDoctorUpdateForm(@PathVariable("doctorID") long doctorID, Model doctorModel) {
+		doctorProfile d = docrepo.findById(doctorID)
+				.orElseThrow(() -> new IllegalArgumentException("Invalid doctor ID:" + doctorID));
+		doctorModel.addAttribute("doctorProfile", d);
+		return "updatedoc";
+	}
+
+	@PostMapping("/updatedoc/{doctorID}")
+	public String updateDoctor(@PathVariable("doctorID") long doctorID, @Valid doctorProfile d,
+			BindingResult result, Model doctorModel) {
+		if (result.hasErrors()) {
+			d.setDoctorID(doctorID);
+			return "updatedoc";
+		}
+		docrepo.save(d);
+		doctorModel.addAttribute("doctorProfiles", docrepo.findAll());
+		return "resultsdoc";
+	}
+	
+	@GetMapping("/deleteDoctorProfile/{doctorID}")
+	public String deleteDoctor(@PathVariable("doctorID") long doctorID, Model doctorModel) {
+		doctorProfile dP = docrepo.findById(doctorID).orElseThrow(() -> new IllegalArgumentException("Invalid doctor ID:" + doctorID));
+		docrepo.delete(dP);
+		doctorModel.addAttribute("doctorProfiles", docrepo.findAll());
+		return "resultsdoc";
+
+	}
+	
 }
